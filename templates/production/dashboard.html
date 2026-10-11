@@ -1,0 +1,198 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1">
+
+    <title>Poultry Farm - Production</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+</head>
+
+<body class="bg-light">
+
+<nav class="navbar navbar-dark bg-success">
+    <div class="container">
+        <span class="navbar-brand">
+            Poultry Farm Management
+        </span>
+    </div>
+</nav>
+
+<div class="container py-4">
+
+    <h2>Production Dashboard</h2>
+
+    <p class="text-muted">
+        Record daily egg harvesting and monitor inventory.
+    </p>
+    
+<div class="mb-4">
+    <a href="{% url 'feed_dashboard' %}"
+       class="btn btn-success">
+        Feed Inventory
+    </a>
+
+    <a href="/admin/"
+       class="btn btn-outline-secondary">
+        Administration
+    </a>
+</div>
+    {% for message in messages %}
+        <div class="alert alert-success">
+            {{ message }}
+        </div>
+    {% endfor %}
+
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5>Available Egg Trays</h5>
+                    <h2 class="text-success">
+                        {{ tray_stock }}
+                    </h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5>Available Egg Boxes</h5>
+                    <h2 class="text-success">
+                        {{ box_stock }}
+                    </h2>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+
+            <h4>Record New Harvest</h4>
+
+            <form method="POST">
+                {% csrf_token %}
+
+                {{ form.as_p }}
+
+                <button
+                    type="submit"
+                    class="btn btn-success"
+                >
+                    Save Harvest
+                </button>
+            </form>
+
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+
+            <h4>Recent Harvests</h4>
+
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Shift</th>
+                            <th>Trays</th>
+                            <th>Boxes</th>
+                            <th>Worker</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for harvest in recent_harvests %}
+                        <tr>
+                            <td>{{ harvest.business_date }}</td>
+                            <td>{{ harvest.get_shift_display }}</td>
+                            <td>{{ harvest.trays_harvested }}</td>
+                            <td>{{ harvest.boxes_harvested }}</td>
+                            <td>{{ harvest.worker.username }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5">
+                                No harvests recorded yet.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>
+
+<div class="col-md-6">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h5>Feed Bags Remaining</h5>
+
+            <h2 class="text-success">
+                {{ remaining_feed }}
+            </h2>
+
+            <a href="{% url 'feed_dashboard' %}">
+                Manage Feed Inventory
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+
+    <div class="col-md-4 mb-3">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5>Known Eggs Available</h5>
+                <h2>{{ known_eggs }}</h2>
+                <p class="text-muted">
+                    Eggs with confirmed quantities
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5>Full-Tray Equivalent</h5>
+                <h2>{{ full_tray_equivalent }}</h2>
+                <p class="text-muted">
+                    30 eggs per tray
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5>Half-Tray Equivalent</h5>
+                <h2>{{ half_tray_equivalent }}</h2>
+                <p class="text-muted">
+                    15 eggs per half tray
+                </p>
+            </div>
+        </div>
+    </div>
+
+</div>
