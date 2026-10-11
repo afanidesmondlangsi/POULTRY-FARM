@@ -1,18 +1,16 @@
-from django.shortcuts import render
 
-# Create your views here.
-
-from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import transaction
 from django.shortcuts import render, redirect
 from django.utils import timezone
 
+from accounts.permissions import farm_worker_required
+
 from .forms import FeedTransactionForm
 from .models import FeedTransaction
 
 
-@login_required
+@farm_worker_required
 def feed_dashboard(request):
 
     if request.method == "POST":
@@ -31,10 +29,7 @@ def feed_dashboard(request):
 
             with transaction.atomic():
 
-                # Serialize feed updates for SQLite development.
-                # PostgreSQL row locking will be added before
-                # multi-user production deployment.
-
+                # Check the current feed inventory.
                 remaining = FeedTransaction.remaining_feed()
 
                 if remaining + quantity < 0:

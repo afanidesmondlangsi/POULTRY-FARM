@@ -1,0 +1,58 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Correct Sale</title>
+</head>
+<body>
+
+<h1>Correct Sale #{{ sale.id }}</h1>
+
+<p>
+    <a href="{% url 'sales_correction_list' %}">
+        Back to Sales Corrections
+    </a>
+</p>
+
+<h2>Original Sale Information</h2>
+
+<p>Business Date: {{ sale.business_date }}</p>
+<p>Product: {{ sale.get_product_type_display }}</p>
+<p>Quantity: {{ sale.quantity }}</p>
+<p>Unit Price: {{ sale.unit_price }}</p>
+<p>Revenue: {{ sale.total_amount }}</p>
+<p>Eggs Sold: {{ sale.eggs_sold }}</p>
+
+{% if sale.is_locked %}
+    <p><strong>Status: Locked</strong></p>
+    <p>
+        This historical sale can only be corrected
+        by an Administrator.
+    </p>
+{% else %}
+    <p><strong>Status: Open</strong></p>
+{% endif %}
+
+<h2>Enter Corrected Values</h2>
+
+<form method="post">
+    {% csrf_token %}
+
+    {{ form.non_field_errors }}
+
+    {% for field in form %}
+        <p>
+            {{ field.label_tag }}
+            {{ field }}
+            {{ field.errors }}
+        </p>
+    {% endfor %}
+
+    <button type="submit">
+        Save Correction
+    </button>
+</form>
+
+</body>
+</html>

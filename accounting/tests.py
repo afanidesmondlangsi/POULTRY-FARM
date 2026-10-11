@@ -1,30 +1,42 @@
-from django.test import TestCase
 
-# Create your tests here.
-from datetime import timedelta
-from django.utils import timezone
-from sales.models import Sale
-from accounting.views import calculate_finances
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from accounting.models import Expense
+from accounting.views import calculate_finances
+from sales.models import Sale
 
+
+# ============================================================
+# 1. ACCOUNTING DASHBOARD TESTS
+# ============================================================
 
 class AccountingTests(TestCase):
 
     def setUp(self):
         User = get_user_model()
 
+        # Create a test user
         self.user = User.objects.create_user(
             username="accounting_test_user",
             password="TestPassword123!"
         )
 
+        # Create the Administrator group
+        administrator_group, _ = Group.objects.get_or_create(
+            name="Administrator"
+        )
+
+        # Assign the user to the Administrator group
+        self.user.groups.add(administrator_group)
+
+        # Log in the administrator
         self.client.force_login(self.user)
 
         self.url = reverse("accounting_dashboard")
@@ -103,6 +115,11 @@ class AccountingTests(TestCase):
             - Decimal("100.00")
         )
 
+
+# ============================================================
+# 2. FINANCIAL REPORTING TESTS
+# ============================================================
+
 class FinancialReportingTests(TestCase):
 
     def setUp(self):
@@ -137,7 +154,6 @@ class FinancialReportingTests(TestCase):
         )
 
     def test_daily_financial_report(self):
-
         self.create_sale(
             self.today,
             Decimal("500.00")
@@ -169,7 +185,6 @@ class FinancialReportingTests(TestCase):
         )
 
     def test_date_filter_excludes_older_records(self):
-
         self.create_sale(
             self.yesterday,
             Decimal("400.00")
@@ -191,7 +206,6 @@ class FinancialReportingTests(TestCase):
         )
 
     def test_all_time_financial_report(self):
-
         self.create_sale(
             self.yesterday,
             Decimal("400.00")
@@ -222,4 +236,54 @@ class FinancialReportingTests(TestCase):
         self.assertEqual(
             report["net_income"],
             Decimal("750.00")
+        )
+
+
+# ============================================================
+# 3. ACCOUNTING PERMISSION TESTS
+# ============================================================
+
+class AccountingPermissionTests(TestCase):
+
+    def setUp(self):
+        User = get_user_model()
+
+        self.staff_user = User.objects.create_user(
+            username="farm_staff_test",
+            password="TestPassword123!"
+        )
+
+        staff_group, _ = Group.objects.get_or_create(
+            name="Farm Staff"
+        )
+
+        self.staff_user.groups.add(staff_group)
+
+        self.url = reverse("accounting_dashboard")
+
+    def test_farm_staff_cannot_view_accounting(self):
+        self.client.force_login(self.staff_user)
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_farm_staff_cannot_record_expense(self):
+        self.client.force_login(self.staff_user)
+
+        response = self.client.post(
+            self.url,
+            {
+                "business_date": "2026-10-11",
+                "category": "FEED",
+                "description": "Unauthorized expense",
+                "amount": "100.00",
+            }
+        )
+
+        self.assertEqual(response.status_code, 403)
+
+        self.assertEqual(
+            Expense.objects.count(),
+            0
         )

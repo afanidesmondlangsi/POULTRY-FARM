@@ -1,21 +1,33 @@
 
 from decimal import Decimal
 
-from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from django.shortcuts import render
 
-from accounting.models import Expense
+from accounts.permissions import farm_worker_required
 from inventory.models import EggStockMovement
 from production.models import Harvest
 from sales.models import Sale
 
 
-@login_required
+@farm_worker_required
 def farm_overview(request):
 
+    user = request.user
+
     # ==========================================
-    # 1. CURRENT EGG INVENTORY
+    # 1. DETERMINE USER ROLE
+    # ==========================================
+
+    is_administrator = (
+        user.is_superuser
+        or user.groups.filter(
+            name="Administrator"
+        ).exists()
+    )
+
+    # ==========================================
+    # 2. EGG INVENTORY
     # ==========================================
 
     known_eggs = EggStockMovement.current_stock()
@@ -23,44 +35,10 @@ def farm_overview(request):
     full_tray_equivalent = known_eggs // 30
 
     # ==========================================
-    # 2. PRODUCTION SUMMARY
+    # 3. PRODUCTION
     # ==========================================
 
     total_harvests = Harvest.objects.count()
-
-    # ==========================================
-    # 3. SALES SUMMARY
-    # ==========================================
-
-    total_sales = Sale.objects.count()
-
-    total_revenue = (
-        Sale.objects.aggregate(
-            total=Sum("total_amount")
-        )["total"]
-        or Decimal("0.00")
-    )
-
-    # ==========================================
-    # 4. EXPENSE SUMMARY
-    # ==========================================
-
-    total_expenses = (
-        Expense.objects.aggregate(
-            total=Sum("amount")
-        )["total"]
-        or Decimal("0.00")
-    )
-
-    # ==========================================
-    # 5. NET INCOME
-    # ==========================================
-
-    net_income = total_revenue - total_expenses
-
-    # ==========================================
-    # 6. RECENT HARVESTS
-    # ==========================================
 
     recent_harvests = Harvest.objects.order_by(
         "-business_date",
@@ -68,32 +46,58 @@ def farm_overview(request):
     )[:5]
 
     # ==========================================
-    # 7. RECENT SALES
-    # ==========================================
-
-    recent_sales = Sale.objects.order_by(
-        "-business_date",
-        "-id"
-    )[:5]
-
-    # ==========================================
-    # 8. DASHBOARD DATA
+    # 4. COMMON DASHBOARD INFORMATION
     # ==========================================
 
     context = {
+        "is_administrator": is_administrator,
         "known_eggs": known_eggs,
         "full_tray_equivalent": full_tray_equivalent,
         "total_harvests": total_harvests,
-        "total_sales": total_sales,
-        "total_revenue": total_revenue,
-        "total_expenses": total_expenses,
-        "net_income": net_income,
         "recent_harvests": recent_harvests,
-        "recent_sales": recent_sales,
     }
 
     # ==========================================
-    # 9. DISPLAY DASHBOARD
+    # 5. ADMINISTRATOR FINANCIAL INFORMATION
+    # ==========================================
+
+    if is_administrator:
+
+        from accounting.models import Expense
+
+        total_sales = Sale.objects.count()
+
+        total_revenue = (
+            Sale.objects.aggregate(
+                total=Sum("total_amount")
+            )["total"]
+            or Decimal("0.00")
+        )
+
+        total_expenses = (
+            Expense.objects.aggregate(
+                total=Sum("amount")
+            )["total"]
+            or Decimal("0.00")
+        )
+
+        net_income = total_revenue - total_expenses
+
+        recent_sales = Sale.objects.order_by(
+            "-business_date",
+            "-id"
+        )[:5]
+
+        context.update({
+            "total_sales": total_sales,
+            "total_revenue": total_revenue,
+            "total_expenses": total_expenses,
+            "net_income": net_income,
+            "recent_sales": recent_sales,
+        })
+
+    # ==========================================
+    # 6. DISPLAY DASHBOARD
     # ==========================================
 
     return render(

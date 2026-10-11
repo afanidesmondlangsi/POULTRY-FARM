@@ -7,9 +7,8 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from django.shortcuts import redirect, render
 from django.utils import timezone
-
+from accounts.permissions import administrator_required
 from sales.models import Sale
-
 from .forms import ExpenseForm
 from .models import Expense
 
@@ -49,7 +48,7 @@ def calculate_finances(start_date=None, end_date=None):
     }
 
 
-@login_required
+@administrator_required
 def accounting_dashboard(request):
 
     if request.method == "POST":

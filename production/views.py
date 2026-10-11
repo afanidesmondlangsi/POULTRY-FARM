@@ -10,9 +10,9 @@ from inventory.models import Product, StockMovement, FeedTransaction
 from .forms import HarvestForm
 from .services import record_harvest
 from .models import Harvest
+from accounts.permissions import farm_worker_required
 
-
-@login_required
+@farm_worker_required
 def production_dashboard(request):
 
     if request.method == "POST":

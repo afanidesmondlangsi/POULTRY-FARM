@@ -1,0 +1,105 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sales Corrections</title>
+</head>
+<body>
+
+<h1>Administrator - Sales Corrections</h1>
+
+<p>
+    <a href="{% url 'sales_dashboard' %}">
+        Back to Sales Dashboard
+    </a>
+</p>
+
+{% if messages %}
+    {% for message in messages %}
+        <p>{{ message }}</p>
+    {% endfor %}
+{% endif %}
+
+<h2>Recent Sales</h2>
+
+<table border="1" cellpadding="8">
+    <thead>
+        <tr>
+            <th>Sale ID</th>
+            <th>Business Date</th>
+            <th>Product</th>
+            <th>Quantity</th>
+            <th>Unit Price</th>
+            <th>Revenue</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for sale in sales %}
+        <tr>
+            <td>{{ sale.id }}</td>
+            <td>{{ sale.business_date }}</td>
+            <td>{{ sale.get_product_type_display }}</td>
+            <td>{{ sale.quantity }}</td>
+            <td>{{ sale.unit_price }}</td>
+            <td>{{ sale.total_amount }}</td>
+            <td>
+                {% if sale.is_locked %}
+                    Locked
+                {% else %}
+                    Open
+                {% endif %}
+            </td>
+            <td>
+                <a href="{% url 'sales_correction_detail' sale.id %}">
+                    Correct Sale
+                </a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="8">No sales recorded.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h2>Correction Audit History</h2>
+
+<table border="1" cellpadding="8">
+    <thead>
+        <tr>
+            <th>Sale</th>
+            <th>Administrator</th>
+            <th>Old Quantity</th>
+            <th>New Quantity</th>
+            <th>Old Revenue</th>
+            <th>New Revenue</th>
+            <th>Reason</th>
+            <th>Corrected At</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for correction in corrections %}
+        <tr>
+            <td>{{ correction.sale_id }}</td>
+            <td>{{ correction.corrected_by.username }}</td>
+            <td>{{ correction.old_quantity }}</td>
+            <td>{{ correction.new_quantity }}</td>
+            <td>{{ correction.old_total_amount }}</td>
+            <td>{{ correction.new_total_amount }}</td>
+            <td>{{ correction.reason }}</td>
+            <td>{{ correction.corrected_at }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="8">No corrections recorded.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+</body>
+</html>

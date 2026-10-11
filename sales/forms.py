@@ -77,3 +77,26 @@ class SaleForm(forms.ModelForm):
             )
 
         return cleaned_data
+
+class SaleCorrectionForm(SaleForm):
+
+    reason = forms.CharField(
+        label="Reason for correction",
+        widget=forms.Textarea(
+            attrs={
+                "class": "form-control",
+                "rows": 3,
+                "placeholder": "Explain why this sale is being corrected",
+            }
+        ),
+        required=True,
+        min_length=5,
+    )
+
+    class Meta(SaleForm.Meta):
+        fields = [
+            "product_type",
+            "quantity",
+            "unit_price",
+            "trays_per_box",
+        ]
