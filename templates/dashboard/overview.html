@@ -4,8 +4,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <title>Poultry Farm - Overview</title>
 
@@ -17,6 +16,7 @@
 
 <body class="bg-light">
 
+<!-- NAVIGATION BAR -->
 <nav class="navbar navbar-dark bg-success">
     <div class="container">
         <a class="navbar-brand" href="/">
@@ -33,7 +33,7 @@
         Monitor your poultry farm from one place.
     </p>
 
-    <!-- NAVIGATION -->
+    <!-- NAVIGATION BUTTONS -->
     <div class="mb-4 d-flex flex-wrap gap-2">
 
         <a href="{% url 'farm_overview' %}"
@@ -55,10 +55,12 @@
            class="btn btn-outline-success">
             Feed Inventory
         </a>
+
         <a href="{% url 'accounting_dashboard' %}"
            class="btn btn-outline-success">
-           Accounting
+            Accounting
         </a>
+
         <a href="/admin/"
            class="btn btn-outline-secondary">
             Administration
@@ -66,64 +68,147 @@
 
     </div>
 
-    <!-- SUMMARY CARDS -->
+    <!-- FARM SUMMARY -->
+    <h4 class="mb-3">Farm Summary</h4>
+
     <div class="row g-3 mb-4">
 
-        <div class="col-md-3">
+        <!-- AVAILABLE EGGS -->
+        <div class="col-md-4">
             <div class="card shadow-sm h-100">
                 <div class="card-body">
-                    <h6>Known Eggs Available</h6>
+
+                    <h6 class="text-muted">
+                        Known Eggs Available
+                    </h6>
+
                     <h2 class="text-success">
                         {{ known_eggs }}
                     </h2>
+
                 </div>
             </div>
         </div>
 
-        <div class="col-md-3">
+        <!-- FULL TRAY EQUIVALENT -->
+        <div class="col-md-4">
             <div class="card shadow-sm h-100">
                 <div class="card-body">
-                    <h6>Full-Tray Equivalent</h6>
+
+                    <h6 class="text-muted">
+                        Full-Tray Equivalent
+                    </h6>
+
                     <h2>
                         {{ full_tray_equivalent }}
                     </h2>
+
                     <small class="text-muted">
                         30 eggs per tray
                     </small>
+
                 </div>
             </div>
         </div>
 
-        <div class="col-md-3">
+        <!-- HARVEST RECORDS -->
+        <div class="col-md-4">
             <div class="card shadow-sm h-100">
                 <div class="card-body">
-                    <h6>Harvest Records</h6>
+
+                    <h6 class="text-muted">
+                        Harvest Records
+                    </h6>
+
                     <h2>
                         {{ total_harvests }}
                     </h2>
-                </div>
-            </div>
-        </div>
 
-        <div class="col-md-3">
-            <div class="card shadow-sm h-100">
-                <div class="card-body">
-                    <h6>Sales Revenue</h6>
-                    <h2 class="text-success">
-                        {{ total_revenue }}
-                    </h2>
-                    <small class="text-muted">
-                        From recorded sales
-                    </small>
                 </div>
             </div>
         </div>
 
     </div>
 
+    <!-- FINANCIAL OVERVIEW -->
+    <h4 class="mt-4 mb-3">Financial Overview</h4>
+
+    <div class="row g-3 mb-4">
+
+        <!-- TOTAL REVENUE -->
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+
+                    <h6 class="text-muted">
+                        Total Revenue
+                    </h6>
+
+                    <h3 class="text-success">
+                        {{ total_revenue|floatformat:2 }}
+                    </h3>
+
+                    <small class="text-muted">
+                        From recorded sales
+                    </small>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- TOTAL EXPENSES -->
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+
+                    <h6 class="text-muted">
+                        Total Expenses
+                    </h6>
+
+                    <h3 class="text-danger">
+                        {{ total_expenses|floatformat:2 }}
+                    </h3>
+
+                    <small class="text-muted">
+                        From recorded expenses
+                    </small>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- NET INCOME -->
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+
+                    <h6 class="text-muted">
+                        Net Income
+                    </h6>
+
+                    <h3 class="{% if net_income < 0 %}text-danger{% else %}text-success{% endif %}">
+                        {{ net_income|floatformat:2 }}
+                    </h3>
+
+                    <small class="text-muted">
+                        Revenue minus expenses
+                    </small>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <a href="{% url 'accounting_dashboard' %}"
+       class="btn btn-success mb-4">
+        View Detailed Accounting Reports
+    </a>
+
     <!-- SALES SUMMARY -->
     <div class="card shadow-sm mb-4">
         <div class="card-body">
+
             <h4>Sales Summary</h4>
 
             <p>
@@ -135,6 +220,7 @@
                class="btn btn-success">
                 Open Sales Dashboard
             </a>
+
         </div>
     </div>
 
@@ -145,6 +231,7 @@
             <h4>Recent Harvests</h4>
 
             <div class="table-responsive">
+
                 <table class="table table-striped">
 
                     <thead>
@@ -157,34 +244,54 @@
                     </thead>
 
                     <tbody>
+
                         {% for harvest in recent_harvests %}
+
                         <tr>
-                            <td>{{ harvest.business_date }}</td>
-                            <td>{{ harvest.trays_harvested }}</td>
-                            <td>{{ harvest.half_trays_harvested }}</td>
-                            <td>{{ harvest.boxes_harvested }}</td>
+                            <td>
+                                {{ harvest.business_date }}
+                            </td>
+
+                            <td>
+                                {{ harvest.trays_harvested }}
+                            </td>
+
+                            <td>
+                                {{ harvest.half_trays_harvested }}
+                            </td>
+
+                            <td>
+                                {{ harvest.boxes_harvested }}
+                            </td>
                         </tr>
+
                         {% empty %}
+
                         <tr>
                             <td colspan="4">
                                 No harvests recorded yet.
                             </td>
                         </tr>
+
                         {% endfor %}
+
                     </tbody>
 
                 </table>
+
             </div>
+
         </div>
     </div>
 
     <!-- RECENT SALES -->
-    <div class="card shadow-sm">
+    <div class="card shadow-sm mb-4">
         <div class="card-body">
 
             <h4>Recent Sales</h4>
 
             <div class="table-responsive">
+
                 <table class="table table-striped">
 
                     <thead>
@@ -197,23 +304,41 @@
                     </thead>
 
                     <tbody>
+
                         {% for sale in recent_sales %}
+
                         <tr>
-                            <td>{{ sale.business_date }}</td>
-                            <td>{{ sale.get_product_type_display }}</td>
-                            <td>{{ sale.quantity }}</td>
-                            <td>{{ sale.total_amount }}</td>
+                            <td>
+                                {{ sale.business_date }}
+                            </td>
+
+                            <td>
+                                {{ sale.get_product_type_display }}
+                            </td>
+
+                            <td>
+                                {{ sale.quantity }}
+                            </td>
+
+                            <td>
+                                {{ sale.total_amount|floatformat:2 }}
+                            </td>
                         </tr>
+
                         {% empty %}
+
                         <tr>
                             <td colspan="4">
                                 No sales recorded yet.
                             </td>
                         </tr>
+
                         {% endfor %}
+
                     </tbody>
 
                 </table>
+
             </div>
 
         </div>

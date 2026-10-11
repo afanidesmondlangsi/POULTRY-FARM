@@ -174,6 +174,7 @@
     </div>
 </div>
 
+
 <!-- FINANCIAL PERFORMANCE GRAPH -->
 <div class="card shadow-sm mb-4">
     <div class="card-body">
@@ -181,9 +182,25 @@
         <h4>Financial Performance</h4>
 
         <p class="text-muted">
-            Revenue, expenses, and net income
-            over the last 7 days.
+            Compare revenue, expenses, and net income
+            across different reporting periods.
         </p>
+
+        <div class="mb-3">
+            <label for="chartPeriod" class="form-label">
+                Reporting Period
+            </label>
+
+            <select id="chartPeriod"
+                    class="form-select"
+                    style="max-width: 250px;">
+                <option value="7">Last 7 Days</option>
+                <option value="30">Last 30 Days</option>
+                <option value="12months">
+                    Last 12 Months
+                </option>
+            </select>
+        </div>
 
         <div style="height: 350px;">
             <canvas id="financialChart"></canvas>
@@ -192,38 +209,47 @@
     </div>
 </div>
 
+{{ chart_data|json_script:"financial-chart-data" }}
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
 
 <script>
-    const labels = {{ chart_labels|safe }};
-    const revenue = {{ chart_revenue|safe }};
-    const expenses = {{ chart_expenses|safe }};
-    const netIncome = {{ chart_net_income|safe }};
+    const financialData = JSON.parse(
+        document.getElementById(
+            "financial-chart-data"
+        ).textContent
+    );
 
-    new Chart(
+    const periodSelector = document.getElementById(
+        "chartPeriod"
+    );
+
+    const initialData = financialData["7"];
+
+    const financialChart = new Chart(
         document.getElementById("financialChart"),
         {
             type: "line",
 
             data: {
-                labels: labels,
+                labels: initialData.labels,
 
                 datasets: [
                     {
                         label: "Revenue",
-                        data: revenue,
+                        data: initialData.revenue,
                         borderColor: "green",
                         tension: 0.3
                     },
                     {
                         label: "Expenses",
-                        data: expenses,
+                        data: initialData.expenses,
                         borderColor: "red",
                         tension: 0.3
                     },
                     {
                         label: "Net Income",
-                        data: netIncome,
+                        data: initialData.net_income,
                         borderColor: "blue",
                         tension: 0.3
                     }
@@ -232,17 +258,33 @@
 
             options: {
                 responsive: true,
-                maintainAspectRatio: false,
-
-                scales: {
-                    y: {
-                        beginAtZero: false
-                    }
-                }
+                maintainAspectRatio: false
             }
         }
     );
+
+    periodSelector.addEventListener(
+        "change",
+        function () {
+
+            const selected = financialData[this.value];
+
+            financialChart.data.labels = selected.labels;
+
+            financialChart.data.datasets[0].data =
+                selected.revenue;
+
+            financialChart.data.datasets[1].data =
+                selected.expenses;
+
+            financialChart.data.datasets[2].data =
+                selected.net_income;
+
+            financialChart.update();
+        }
+    );
 </script>
+
 
     <!-- EXPENSE FORM -->
     <div class="card shadow-sm mb-4">

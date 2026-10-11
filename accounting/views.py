@@ -97,35 +97,84 @@ def accounting_dashboard(request):
     # Yearly financial totals
     yearly = calculate_finances(year_start, today)
 
-    # Financial performance for the last 7 days
-    chart_labels = []
-    chart_revenue = []
-    chart_expenses = []
-    chart_net_income = []
+    
+    # Financial performance reporting periods
+    chart_data = {}
 
-    for days_ago in range(6, -1, -1):
-        report_date = today - timedelta(days=days_ago)
+    # Daily charts: last 7 and 30 days
+    for period in (7, 30):
+
+        labels = []
+        revenues = []
+        expenses = []
+        net_incomes = []
+
+        for days_ago in range(period - 1, -1, -1):
+            report_date = today - timedelta(days=days_ago)
+
+            finances = calculate_finances(
+                report_date,
+                report_date
+            )
+
+            labels.append(report_date.strftime("%d %b"))
+            revenues.append(float(finances["revenue"]))
+            expenses.append(float(finances["expenses"]))
+            net_incomes.append(float(finances["net_income"]))
+
+        chart_data[str(period)] = {
+            "labels": labels,
+            "revenue": revenues,
+            "expenses": expenses,
+            "net_income": net_incomes,
+        }
+
+    # Monthly chart: last 12 calendar months
+    labels = []
+    revenues = []
+    expenses = []
+    net_incomes = []
+
+    for months_ago in range(11, -1, -1):
+
+        month_index = (
+            today.year * 12
+            + today.month - 1
+            - months_ago
+        )
+
+        year = month_index // 12
+        month = month_index % 12 + 1
+
+        start_date = date(year, month, 1)
+
+        if month == 12:
+            next_month = date(year + 1, 1, 1)
+        else:
+            next_month = date(year, month + 1, 1)
+
+        end_date = min(
+            next_month - timedelta(days=1),
+            today
+        )
 
         finances = calculate_finances(
-            report_date,
-            report_date
+            start_date,
+            end_date
         )
 
-        chart_labels.append(
-            report_date.strftime("%d %b")
-        )
+        labels.append(start_date.strftime("%b %Y"))
+        revenues.append(float(finances["revenue"]))
+        expenses.append(float(finances["expenses"]))
+        net_incomes.append(float(finances["net_income"]))
 
-        chart_revenue.append(
-            float(finances["revenue"])
-        )
+    chart_data["12months"] = {
+        "labels": labels,
+        "revenue": revenues,
+        "expenses": expenses,
+        "net_income": net_incomes,
+    }
 
-        chart_expenses.append(
-            float(finances["expenses"])
-        )
-
-        chart_net_income.append(
-            float(finances["net_income"])
-        )
 
     recent_expenses = Expense.objects.select_related(
         "recorded_by"
@@ -153,10 +202,7 @@ def accounting_dashboard(request):
         "year_start": year_start,
 
         "recent_expenses": recent_expenses,
-        "chart_labels": json.dumps(chart_labels),
-        "chart_revenue": json.dumps(chart_revenue),
-        "chart_expenses": json.dumps(chart_expenses),
-        "chart_net_income": json.dumps(chart_net_income),
+        "chart_data": json.dumps(chart_data),
     }
 
     return render(
